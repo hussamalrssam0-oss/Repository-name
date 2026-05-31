@@ -1,1 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة استنساخ الأصوات بالذكاء الاصطناعي</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+        }
+        h1 { text-align: center; color: #38bdf8; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: #f8fafc;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background-color: #0369a1; }
+        button:disabled { background-color: #475569; cursor: not-allowed; }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #0f172a;
+            border-radius: 6px;
+            display: none;
+            text-align: center;
+        }
+        audio { width: 100%; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>مستنسخ الأصوات الذكي</h1>
+        <p style="text-align: center; color: #94a3b8;">ارفع ملفاتك لتحويل واستنساخ الصوت مجاناً</p>
+        
+        <div class="form-group">
+            <label for="audioInput">1. ارفع ملف الصوت المراد تغييره:</label>
+            <input type="file" id="audioInput" accept="audio/*">
+        </div>
+
+        <div class="form-group">
+            <label for="modelInput">2. ارفع موديل الصوت الجاهز (RVC):</label>
+            <input type="file" id="modelInput">
+        </div>
+
+        <button id="btn" onclick="startCloning()">ابدأ استنساخ الصوت الآن</button>
+
+        <div class="result" id="resultBox">
+            <h3 id="statusText" style="color: #4ade80;">تم الاستنساخ بنجاح!</h3>
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+
+    <script>
+        async function startCloning() {
+            const audioFile = document.getElementById('audioInput').files[0];
+            const modelFile = document.getElementById('modelInput').files[0];
+            const btn = document.getElementById('btn');
+            const resultBox = document.getElementById('resultBox');
+            const statusText = document.getElementById('statusText');
+            const audioPlayer = document.getElementById('audioPlayer');
+
+            if (!audioFile || !modelFile) {
+                alert('الرجاء رفع ملف الصوت والموديل معاً للبدء!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "جاري المعالجة والاستنساخ السحابي...";
+            resultBox.style.display = "block";
+            statusText.innerText = "جاري رفع الملفات ومعالجتها بذكاء اصطناعي...";
+            statusText.style.color = "#38bdf8";
+            audioPlayer.style.display = "none";
+
+            try {
+                // تحويل الصوت إلى صيغة قاعدة بيانات للرفع
+                const reader1 = new FileReader();
+                reader1.readAsDataURL(audioFile);
+                reader1.onload = async () => {
+                    const audioBase64 = reader1.result;
+
+                    // إرسال البيانات فوراً إلى سيرفر Hugging Face الخاص بك
+                    const response = await fetch("https://hf.space", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            data: [ audioBase64, null ] // نرسل الملف الصوتي للمحرك
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if(result.data && result.data[0]) {
+                        statusText.innerText = "تم استنساخ وتحويل الصوت بنجاح!";
+                        statusText.style.color = "#4ade80";
+                        audioPlayer.src = result.data[0].url;
+                        audioPlayer.style.display = "block";
+                    } else {
+                        throw new Error("خطأ في المعالجة");
+                    }
+                    btn.disabled = false;
+                    btn.innerText = "ابدأ استنساخ الصوت الآن";
+                };
+            } catch (error) {
+                statusText.innerText = "حدث خطأ أثناء الاتصال بالسيرفر، أعد المحاولة.";
+                statusText.style.color = "#f87171";
+                btn.disabled = false;
+                btn.innerText = "ابدأ استنساخ الصوت الآن";
+            }
+        }
+    </script>
+</body>
+</html>
 
