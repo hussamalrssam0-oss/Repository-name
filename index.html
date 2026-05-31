@@ -1,35 +1,235 @@
-import gradio as gr
-import soundfile as sf
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة استنساخ الأصوات المتكاملة</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            box-sizing: border-box;
+        }
+        h1 { text-align: center; color: #38bdf8; margin-bottom: 5px; font-size: 24px; }
+        .form-group { margin-bottom: 20px; background-color: #1e293b; padding: 10px; border-radius: 8px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #e2e8f0; }
+        input[type="file"], input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: #f8fafc;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .btn-box { display: flex; gap: 10px; margin-top: 10px; }
+        button {
+            width: 100%;
+            padding: 14px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .main-btn { background-color: #0284c7; }
+        .main-btn:hover { background-color: #0369a1; }
+        .sec-btn { background-color: #10b981; }
+        .sec-btn:hover { background-color: #059669; }
+        button:disabled { background-color: #475569; cursor: not-allowed; }
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #0f172a;
+            border-radius: 6px;
+            display: none;
+            text-align: center;
+        }
+        audio { width: 100%; margin-top: 10px; }
+    </style>
+</head>
+<body>
 
-def process_voice_and_music(audio_path, model_path, separate_music):
-    if audio_path is None:
-        return None, "الرجاء رفع ملف صوتي أو أغنية!"
-    
-    # 1. محاكاة فصل الموسيقى إذا اختار المستخدم ذلك
-    if separate_music:
-        print("جاري عزل الموسيقى عن الصوت برمجياً...")
-    
-    # 2. قراءة الملف وتطبيق موديل الـ RVC (محاكاة دمج الموديل على الأغنية)
-    data, samplerate = sf.read(audio_path)
-    output_path = "ai_song_output.wav"
-    sf.write(output_path, data, samplerate)
-    
-    return output_path, "تمت معالجة الأغنية ودمج الموديل بنجاح!"
+    <div class="container">
+        <h1>مستنسخ الأصوات & دمج الأغاني</h1>
+        <p style="text-align: center; color: #94a3b8; margin-top: 0; margin-bottom: 25px;">ارفع أغنيتك، اختر الموديل المحفوظ، وافصل الموسيقى بضغطة زر</p>
+        
+        <!-- 1. رفع الأغنية أو ملف الصوت -->
+        <div class="form-group">
+            <label for="audioInput">1. ارفع ملف الصوت أو الأغنية المراد تحويلها:</label>
+            <input type="file" id="audioInput" accept="audio/*">
+            
+            <!-- خيار فصل الموسيقى اختياري -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="separateMusic">
+                <label for="separateMusic" style="margin: 0; font-weight: normal; color: #94a3b8;">تفعيل خيار فصل الموسيقى عن صوت المغني الأصلي</label>
+            </div>
+        </div>
 
-# واجهة خلفية متطورة تدعم رفع الأغاني وفصل الموسيقى اختيارياً
-demo = gr.Interface(
-    fn=process_voice_and_music,
-    inputs=[
-        gr.Audio(type="filepath", label="ارفع الأغنية أو ملف الصوت"),
-        gr.File(label="ملف الموديل المستخدم"),
-        gr.Checkbox(label="فصل الموسيقى عن صوت المغني الأصلي (اختياري)")
-    ],
-    outputs=[
-        gr.Audio(label="الأغنية الناتجة بصوت الموديل"),
-        gr.Textbox(label="حالة المعالجة")
-    ],
-    title="محرك الـ RVC المتطور للأغاني وفصل الموسيقى"
-)
+        <!-- 2. إدارة وحفظ الموديلات -->
+        <div class="form-group">
+            <label>2. إدارة موديلات الصوت (RVC):</label>
+            
+            <!-- قائمة الموديلات المحفوظة -->
+            <select id="modelSelect" style="margin-bottom: 15px;">
+                <option value="">-- اختر موديل صوت محفوظ --</option>
+            </select>
 
-if __name__ == "__main__":
-    demo.launch()
+            <!-- رفع موديل جديد وتسميته -->
+            <label style="font-size: 13px; color: #94a3b8;">أو ارفع موديل جديد لحفظه في القائمة:</label>
+            <input type="file" id="modelInput" style="margin-bottom: 10px;">
+            <input type="text" id="modelNameInput" placeholder="اكتب اسماً للموديل (مثلاً: صوت حُسام)">
+            
+            <div class="btn-box">
+                <button type="button" class="sec-btn" onclick="saveModelLocal()">حفظ الموديل في القائمة</button>
+            </div>
+        </div>
+
+        <button class="main-btn" id="btn" onclick="startCloningProcess()">ابدأ المعالجة واستنساخ الأغنية الآن</button>
+
+        <!-- صندوق النتيجة -->
+        <div class="result" id="resultBox">
+            <h3 id="statusText" style="color: #4ade80;">تمت المعالجة بنجاح!</h3>
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+
+    <script>
+        // مصفوفة لتخزين الموديلات المحفوظة
+        let savedModels = JSON.parse(localStorage.getItem('saved_rvc_models')) || [];
+
+        // تحديث القائمة عند فتح الموقع
+        updateModelDropdown();
+
+        // دالة لحفظ الموديل محلياً في المتصفح باسم مخصص
+        function saveModelLocal() {
+            const modelFile = document.getElementById('modelInput').files[0];
+            const modelName = document.getElementById('modelNameInput').value.trim();
+
+            if (!modelFile || !modelName) {
+                alert('الرجاء اختيار ملف الموديل وكتابة اسم له أولاً لحفظه!');
+                return;
+            }
+
+            // حفظ الاسم في الذاكرة المحلية للمتصفح
+            const newModel = { id: Date.now(), name: modelName };
+            savedModels.push(newModel);
+            localStorage.setItem('saved_rvc_models', JSON.stringify(savedModels));
+
+            alert(`تم حفظ الموديل "${modelName}" في القائمة بنجاح!`);
+            
+            // إعادة ضبط الخانات وتحديث القائمة
+            document.getElementById('modelNameInput').value = '';
+            document.getElementById('modelInput').value = '';
+            updateModelDropdown();
+        }
+
+        // دالة لتحديث الخيارات داخل القائمة المنسدلة
+        function updateModelDropdown() {
+            const select = document.getElementById('modelSelect');
+            select.innerHTML = '<option value="">-- اختر موديل صوت محفوظ --</option>';
+            
+            savedModels.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.innerText = model.name;
+                select.appendChild(option);
+            });
+        }
+
+        // دالة إرسال البيانات ومعالجتها بالسيرفر
+        async function startCloningProcess() {
+            const audioFile = document.getElementById('audioInput').files[0];
+            const selectedModel = document.getElementById('modelSelect').value;
+            const separateMusic = document.getElementById('separateMusic').checked;
+            
+            const btn = document.getElementById('btn');
+            const resultBox = document.getElementById('resultBox');
+            const statusText = document.getElementById('statusText');
+            const audioPlayer = document.getElementById('audioPlayer');
+
+            if (!audioFile) {
+                alert('الرجاء رفع ملف الأغنية أو الصوت أولاً!');
+                return;
+            }
+
+            if (!selectedModel) {
+                alert('الرجاء تحديد موديل صوت من القائمة المحفوظة للغناء به!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "جاري العمل في السيرفر السحابي...";
+            resultBox.style.display = "block";
+            statusText.innerText = "جاري الرفع ومعالجة الأغنية بذكاء اصطناعي وعزل الموسيقى...";
+            statusText.style.color = "#38bdf8";
+            audioPlayer.style.display = "none";
+
+            try {
+                const reader = new FileReader();
+                reader.readAsDataURL(audioFile);
+                reader.onload = async () => {
+                    const audioBase64 = reader.result;
+
+                    // إرسال الطلب إلى سيرفر Hugging Face الخاص بك
+                    const response = await fetch("https://hf.space", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            data: [ audioBase64, null, separateMusic ]
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if(result.data) {
+                        statusText.innerText = "تمت المعالجة بنجاح!";
+                        statusText.style.color = "#4ade80";
+                        // جلب رابط ملف الصوت المسترجع من السيرفر
+                        audioPlayer.src = result.data[0].url || result.data[0];
+                        audioPlayer.style.display = "block";
+                    } else {
+                        throw new Error("خطأ في المعالجة");
+                    }
+                    btn.disabled = false;
+                    btn.innerText = "ابدأ المعالجة واستنساخ الأغنية الآن";
+                };
+            } catch (error) {
+                statusText.innerText = "حدث خطأ أثناء معالجة الصوت، تأكد أن السيرفر في وضع Running.";
+                statusText.style.color = "#f87171";
+                btn.disabled = false;
+                btn.innerText = "ابدأ المعالجة واستنساخ الأغنية الآن";
+            }
+        }
+    </script>
+</body>
+</html>
