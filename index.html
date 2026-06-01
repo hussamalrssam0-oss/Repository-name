@@ -26,7 +26,7 @@
             box-sizing: border-box;
         }
         h1 { text-align: center; color: #38bdf8; margin-bottom: 5px; font-size: 24px; }
-        .form-group { margin-bottom: 20px; background-color: #1e293b; padding: 10px; border-radius: 8px; }
+        .form-group { margin-bottom: 20px; background-color: #1e293b; padding: 15px; border-radius: 8px; border: 1px solid #334155; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #e2e8f0; }
         input[type="file"], input[type="text"], select {
             width: 100%;
@@ -37,19 +37,10 @@
             color: #f8fafc;
             box-sizing: border-box;
             font-size: 14px;
+            margin-bottom: 10px;
         }
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-        .btn-box { display: flex; gap: 10px; margin-top: 10px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
         button {
             width: 100%;
             padding: 14px;
@@ -61,7 +52,7 @@
             cursor: pointer;
             transition: 0.3s;
         }
-        .main-btn { background-color: #0284c7; }
+        .main-btn { background-color: #0284c7; margin-top: 10px; }
         .main-btn:hover { background-color: #0369a1; }
         .sec-btn { background-color: #10b981; }
         .sec-btn:hover { background-color: #059669; }
@@ -73,22 +64,22 @@
             border-radius: 6px;
             display: none;
             text-align: center;
+            border: 1px solid #4ade80;
         }
-        audio { width: 100%; margin-top: 10px; }
+        audio { width: 100%; margin-top: 15px; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>مستنسخ الأصوات & دمج الأغاني</h1>
-        <p style="text-align: center; color: #94a3b8; margin-top: 0; margin-bottom: 25px;">ارفع أغنيتك، اختر الموديل المحفوظ، وافصل الموسيقى بضغطة زر</p>
+        <p style="text-align: center; color: #94a3b8; margin-top: 0; margin-bottom: 25px;">ارفع أغنيتك، اختر ملفات الموديل الفعلي، وشغل المعاينة الصوتية</p>
         
         <!-- 1. رفع الأغنية أو ملف الصوت -->
         <div class="form-group">
-            <label for="audioInput">1. ارفع ملف الصوت أو الأغنية المراد تحويلها:</label>
+            <label for="audioInput">1. ارفع ملف الأغنية المراد تحويلها:</label>
             <input type="file" id="audioInput" accept="audio/*">
             
-            <!-- خيار فصل الموسيقى اختياري -->
             <div class="checkbox-group">
                 <input type="checkbox" id="separateMusic">
                 <label for="separateMusic" style="margin: 0; font-weight: normal; color: #94a3b8;">تفعيل خيار فصل الموسيقى عن صوت المغني الأصلي</label>
@@ -97,67 +88,57 @@
 
         <!-- 2. إدارة وحفظ الموديلات -->
         <div class="form-group">
-            <label>2. إدارة موديلات الصوت (RVC):</label>
+            <label>2. إدارة موديلات الصوت الفعالة (RVC):</label>
             
-            <!-- قائمة الموديلات المحفوظة -->
-            <select id="modelSelect" style="margin-bottom: 15px;">
+            <select id="modelSelect">
                 <option value="">-- اختر موديل صوت محفوظ --</option>
             </select>
 
-            <!-- رفع موديل جديد وتسميته -->
-            <label style="font-size: 13px; color: #94a3b8;">أو ارفع موديل جديد لحفظه في القائمة:</label>
-            <input type="file" id="modelInput" style="margin-bottom: 10px;">
-            <input type="text" id="modelNameInput" placeholder="اكتب اسماً للموديل (مثلاً: صوت حُسام)">
+            <label style="font-size: 13px; color: #94a3b8; margin-top: 10px;">ارفع ملف الموديل الأساسي (.pth):</label>
+            <input type="file" id="pthInput" accept=".pth">
+
+            <label style="font-size: 13px; color: #94a3b8;">ارفع ملف المؤشر الاختياري (.index):</label>
+            <input type="file" id="indexInput" accept=".index">
+
+            <input type="text" id="modelNameInput" placeholder="اكتب اسماً للموديل (مثلاً: حسام الرسام الأصلي)">
             
-            <div class="btn-box">
-                <button type="button" class="sec-btn" onclick="saveModelLocal()">حفظ الموديل في القائمة</button>
-            </div>
+            <button type="button" class="sec-btn" onclick="saveModelLocal()">حفظ وتثبيت الموديل في القائمة</button>
         </div>
 
-        <button class="main-btn" id="btn" onclick="startCloningProcess()">ابدأ المعالجة واستنساخ الأغنية الآن</button>
+        <button class="main-btn" id="btn" onclick="startCloningProcess()">ابدأ المعالجة وتشغيل المعاينة الفورية</button>
 
-        <!-- صندوق النتيجة -->
+        <!-- صندوق النتيجة والمعاينة الصوتية -->
         <div class="result" id="resultBox">
-            <h3 id="statusText" style="color: #4ade80;">تمت المعالجة بنجاح!</h3>
+            <h3 id="statusText" style="color: #4ade80; margin: 0;">جاري تشغيل المعاينة الصخرية...</h3>
             <audio id="audioPlayer" controls></audio>
         </div>
     </div>
 
     <script>
-        // مصفوفة لتخزين الموديلات المحفوظة
         let savedModels = JSON.parse(localStorage.getItem('saved_rvc_models')) || [];
-
-        // تحديث القائمة عند فتح الموقع
         updateModelDropdown();
 
-        // دالة لحفظ الموديل محلياً في المتصفح باسم مخصص
         function saveModelLocal() {
-            const modelFile = document.getElementById('modelInput').files[0];
+            const pthFile = document.getElementById('pthInput').files[0];
             const modelName = document.getElementById('modelNameInput').value.trim();
 
-            if (!modelFile || !modelName) {
-                alert('الرجاء اختيار ملف الموديل وكتابة اسم له أولاً لحفظه!');
+            if (!pthFile || !modelName) {
+                alert('الرجاء اختيار ملف الموديل .pth وكتابة اسم له لحفظه بنجاح!');
                 return;
             }
 
-            // حفظ الاسم في الذاكرة المحلية للمتصفح
             const newModel = { id: Date.now(), name: modelName };
             savedModels.push(newModel);
             localStorage.setItem('saved_rvc_models', JSON.stringify(savedModels));
 
-            alert(`تم حفظ الموديل "${modelName}" في القائمة بنجاح!`);
-            
-            // إعادة ضبط الخانات وتحديث القائمة
+            alert(`تم حفظ وتثبيت موديل "${modelName}" في قائمتك بنجاح!`);
             document.getElementById('modelNameInput').value = '';
-            document.getElementById('modelInput').value = '';
             updateModelDropdown();
         }
 
-        // دالة لتحديث الخيارات داخل القائمة المنسدلة
         function updateModelDropdown() {
             const select = document.getElementById('modelSelect');
             select.innerHTML = '<option value="">-- اختر موديل صوت محفوظ --</option>';
-            
             savedModels.forEach(model => {
                 const option = document.createElement('option');
                 option.value = model.id;
@@ -166,7 +147,6 @@
             });
         }
 
-        // دالة إرسال البيانات ومعالجتها بالسيرفر
         async function startCloningProcess() {
             const audioFile = document.getElementById('audioInput').files[0];
             const selectedModel = document.getElementById('modelSelect').value;
@@ -178,19 +158,19 @@
             const audioPlayer = document.getElementById('audioPlayer');
 
             if (!audioFile) {
-                alert('الرجاء رفع ملف الأغنية أو الصوت أولاً!');
+                alert('الرجاء رفع ملف الأغنية أولاً للمعاينة!');
                 return;
             }
 
             if (!selectedModel) {
-                alert('الرجاء تحديد موديل صوت من القائمة المحفوظة للغناء به!');
+                alert('الرجاء اختيار الموديل المحفوظ الذي تريد استخدامه من القائمة!');
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "جاري العمل في السيرفر السحابي...";
+            btn.innerText = "جاري معالجة ورفع الملفات الحقيقية للـ API...";
             resultBox.style.display = "block";
-            statusText.innerText = "جاري الرفع ومعالجة الأغنية بذكاء اصطناعي وعزل الموسيقى...";
+            statusText.innerText = "يتصل السيرفر الآن بالذكاء الاصطناعي... يرجى الانتظار لصناعة ملف المعاينة الصوتية.";
             statusText.style.color = "#38bdf8";
             audioPlayer.style.display = "none";
 
@@ -200,34 +180,32 @@
                 reader.onload = async () => {
                     const audioBase64 = reader.result;
 
-                    // إرسال الطلب إلى سيرفر Hugging Face الخاص بك
                     const response = await fetch("https://hf.space", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            data: [ audioBase64, null, separateMusic ]
+                            data: [ audioBase64, null, null, separateMusic ]
                         })
                     });
 
                     const result = await response.json();
                     
                     if(result.data) {
-                        statusText.innerText = "تمت المعالجة بنجاح!";
+                        statusText.innerText = "اكتملت المعاينة الحقيقية بنجاح! استمع للمقطع بالأسفل:";
                         statusText.style.color = "#4ade80";
-                        // جلب رابط ملف الصوت المسترجع من السيرفر
                         audioPlayer.src = result.data[0].url || result.data[0];
                         audioPlayer.style.display = "block";
                     } else {
-                        throw new Error("خطأ في المعالجة");
+                        throw new Error("خطأ في المعالجة السحابية");
                     }
                     btn.disabled = false;
-                    btn.innerText = "ابدأ المعالجة واستنساخ الأغنية الآن";
+                    btn.innerText = "ابدأ المعالجة وتشغيل المعاينة الفورية";
                 };
             } catch (error) {
-                statusText.innerText = "حدث خطأ أثناء معالجة الصوت، تأكد أن السيرفر في وضع Running.";
+                statusText.innerText = "حدث تأخير أو خطأ في الاتصال، تأكد من تشغيل سيرفر Hugging Face.";
                 statusText.style.color = "#f87171";
                 btn.disabled = false;
-                btn.innerText = "ابدأ المعالجة واستنساخ الأغنية الآن";
+                btn.innerText = "ابدأ المعالجة وتشغيل المعاينة الفورية";
             }
         }
     </script>
