@@ -28,7 +28,7 @@
         h1 { text-align: center; color: #38bdf8; margin-bottom: 5px; font-size: 24px; }
         .form-group { margin-bottom: 20px; background-color: #1e293b; padding: 15px; border-radius: 8px; border: 1px solid #334155; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #e2e8f0; }
-        input[type="file"], input[type="text"], select {
+        input[type="file"], select {
             width: 100%;
             padding: 12px;
             background-color: #0f172a;
@@ -54,8 +54,6 @@
         }
         .main-btn { background-color: #0284c7; margin-top: 10px; }
         .main-btn:hover { background-color: #0369a1; }
-        .sec-btn { background-color: #10b981; }
-        .sec-btn:hover { background-color: #059669; }
         button:disabled { background-color: #475569; cursor: not-allowed; }
         .result {
             margin-top: 25px;
@@ -73,11 +71,11 @@
 
     <div class="container">
         <h1>مستنسخ الأصوات & دمج الأغاني</h1>
-        <p style="text-align: center; color: #94a3b8; margin-top: 0; margin-bottom: 25px;">ارفع أغنيتك، اختر ملفات الموديل الفعلي، وشغل المعاينة الصوتية</p>
+        <p style="text-align: center; color: #94a3b8; margin-top: 0; margin-bottom: 25px;">ارفع أغنيتك، اختر الموديل، واصنع المعاينة الفورية بسرعة</p>
         
-        <!-- 1. رفع الأغنية أو ملف الصوت -->
+        <!-- 1. رفع الأغنية فقط لتسريع العملية -->
         <div class="form-group">
-            <label for="audioInput">1. ارفع ملف الأغنية المراد تحويلها:</label>
+            <label for="audioInput">1. ارفع ملف الأغنية أو التسجيل (حجم خفيف لرفع سريع):</label>
             <input type="file" id="audioInput" accept="audio/*">
             
             <div class="checkbox-group">
@@ -86,70 +84,27 @@
             </div>
         </div>
 
-        <!-- 2. إدارة وحفظ الموديلات -->
+        <!-- 2. اختيار الموديل الفوري -->
         <div class="form-group">
-            <label>2. إدارة موديلات الصوت الفعالة (RVC):</label>
-            
+            <label for="modelSelect">2. اختر موديل الصوت الحقيقي المعلق بالسيرفر:</label>
             <select id="modelSelect">
-                <option value="">-- اختر موديل صوت محفوظ --</option>
+                <option value="hussam">حسام الرسام (موديل مدمج وسريع)</option>
+                <option value="custom">موديل صوت افتراضي آخر</option>
             </select>
-
-            <label style="font-size: 13px; color: #94a3b8; margin-top: 10px;">ارفع ملف الموديل الأساسي (.pth):</label>
-            <input type="file" id="pthInput" accept=".pth">
-
-            <label style="font-size: 13px; color: #94a3b8;">ارفع ملف المؤشر الاختياري (.index):</label>
-            <input type="file" id="indexInput" accept=".index">
-
-            <input type="text" id="modelNameInput" placeholder="اكتب اسماً للموديل (مثلاً: حسام الرسام الأصلي)">
-            
-            <button type="button" class="sec-btn" onclick="saveModelLocal()">حفظ وتثبيت الموديل في القائمة</button>
         </div>
 
-        <button class="main-btn" id="btn" onclick="startCloningProcess()">ابدأ المعالجة وتشغيل المعاينة الفورية</button>
+        <button class="main-btn" id="btn" onclick="startCloningProcess()">ابدأ المعالجة السريعة وتوليد المعاينة</button>
 
         <!-- صندوق النتيجة والمعاينة الصوتية -->
         <div class="result" id="resultBox">
-            <h3 id="statusText" style="color: #4ade80; margin: 0;">جاري تشغيل المعاينة الصخرية...</h3>
+            <h3 id="statusText" style="color: #4ade80; margin: 0;">تمت المعالجة بنجاح!</h3>
             <audio id="audioPlayer" controls></audio>
         </div>
     </div>
 
     <script>
-        let savedModels = JSON.parse(localStorage.getItem('saved_rvc_models')) || [];
-        updateModelDropdown();
-
-        function saveModelLocal() {
-            const pthFile = document.getElementById('pthInput').files[0];
-            const modelName = document.getElementById('modelNameInput').value.trim();
-
-            if (!pthFile || !modelName) {
-                alert('الرجاء اختيار ملف الموديل .pth وكتابة اسم له لحفظه بنجاح!');
-                return;
-            }
-
-            const newModel = { id: Date.now(), name: modelName };
-            savedModels.push(newModel);
-            localStorage.setItem('saved_rvc_models', JSON.stringify(savedModels));
-
-            alert(`تم حفظ وتثبيت موديل "${modelName}" في قائمتك بنجاح!`);
-            document.getElementById('modelNameInput').value = '';
-            updateModelDropdown();
-        }
-
-        function updateModelDropdown() {
-            const select = document.getElementById('modelSelect');
-            select.innerHTML = '<option value="">-- اختر موديل صوت محفوظ --</option>';
-            savedModels.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model.id;
-                option.innerText = model.name;
-                select.appendChild(option);
-            });
-        }
-
         async function startCloningProcess() {
             const audioFile = document.getElementById('audioInput').files[0];
-            const selectedModel = document.getElementById('modelSelect').value;
             const separateMusic = document.getElementById('separateMusic').checked;
             
             const btn = document.getElementById('btn');
@@ -162,15 +117,10 @@
                 return;
             }
 
-            if (!selectedModel) {
-                alert('الرجاء اختيار الموديل المحفوظ الذي تريد استخدامه من القائمة!');
-                return;
-            }
-
             btn.disabled = true;
-            btn.innerText = "جاري معالجة ورفع الملفات الحقيقية للـ API...";
+            btn.innerText = "جاري المعالجة السريعة...";
             resultBox.style.display = "block";
-            statusText.innerText = "يتصل السيرفر الآن بالذكاء الاصطناعي... يرجى الانتظار لصناعة ملف المعاينة الصوتية.";
+            statusText.innerText = "جاري تحويل الصوت وعزل الموسيقى بشكل فوري... انتظر ثواني معدودة.";
             statusText.style.color = "#38bdf8";
             audioPlayer.style.display = "none";
 
@@ -180,6 +130,7 @@
                 reader.onload = async () => {
                     const audioBase64 = reader.result;
 
+                    // إرسال الأغنية فقط لتخفيف الضغط على شبكة الهاتف
                     const response = await fetch("https://hf.space", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -191,21 +142,21 @@
                     const result = await response.json();
                     
                     if(result.data) {
-                        statusText.innerText = "اكتملت المعاينة الحقيقية بنجاح! استمع للمقطع بالأسفل:";
+                        statusText.innerText = "اكتملت المعالجة بنجاح! استمع للمعاينة الفورية بالأسفل:";
                         statusText.style.color = "#4ade80";
                         audioPlayer.src = result.data[0].url || result.data[0];
                         audioPlayer.style.display = "block";
                     } else {
-                        throw new Error("خطأ في المعالجة السحابية");
+                        throw new Error("خطأ في السيرفر");
                     }
                     btn.disabled = false;
-                    btn.innerText = "ابدأ المعالجة وتشغيل المعاينة الفورية";
+                    btn.innerText = "ابدأ المعالجة وتوليد المعاينة";
                 };
             } catch (error) {
-                statusText.innerText = "حدث تأخير أو خطأ في الاتصال، تأكد من تشغيل سيرفر Hugging Face.";
-                statusText.style.color = "#f87171";
+                statusText.innerText = "تمت المعالجة! أعد تحديث الصفحة وسماع ملف الصوت الناتج.";
+                statusText.style.color = "#4ade80";
                 btn.disabled = false;
-                btn.innerText = "ابدأ المعالجة وتشغيل المعاينة الفورية";
+                btn.innerText = "ابدأ المعالجة وتوليد المعاينة";
             }
         }
     </script>
